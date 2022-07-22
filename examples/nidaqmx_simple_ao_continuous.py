@@ -45,6 +45,10 @@ def create_waveform(rate, samples, amp=1, freq=10, type='constant', phase=0, off
         return np.array([random.uniform(-0.2, 0.2) for _ in range(samples)],
                         dtype=np.float64,
                         )
+
+    elif type == '' or 'zero':
+        return np.zeros(samples, dtype=np.float64)
+
     else:
         raise NotImplementedError
 
@@ -71,6 +75,7 @@ if __name__ == "__main__":
     ## Create time vector and waveform
     t = create_time(rate, samples)
     wf = create_waveform(rate, samples, amp=amp, type='constant')
+    wz = create_waveform(rate, samples, type='zero')
     if SHOW: show_waveform(t, wf)
 
     ## Start the task
@@ -78,4 +83,5 @@ if __name__ == "__main__":
         task.start()
         task.write(wf, timeout=1)
         input('Press any key to exit... ')
+        task.write(wz, timeout=1)
         task.stop()  
