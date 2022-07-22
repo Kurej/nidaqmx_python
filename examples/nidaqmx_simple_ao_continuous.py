@@ -63,7 +63,6 @@ def show_waveform(t, wf):
 
 if __name__ == "__main__":
     SHOW = False
-    loop_time = 0.1
     rate = 1000 # Sampling rate
     samples = 1000 # Number of samples
     chan = "/Dev3/ao0"
