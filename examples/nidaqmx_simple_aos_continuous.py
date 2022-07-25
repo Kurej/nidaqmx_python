@@ -71,7 +71,7 @@ def show_waveform(t, wf):
 
 
 if __name__ == '__main__':
-    SHOW = True
+    SHOW = False
     rate = 1000 # Sampling rate
     samples = 1000 # Number of samples
     chans = '/Dev3/ao0,/Dev3/ao1' # Physical analog outputs (comma separated)
