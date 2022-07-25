@@ -82,11 +82,7 @@ if __name__ == '__main__':
     wf1 = create_waveform(rate, samples, amp=amps[0], type='constant')
     wf2 = create_waveform(rate, samples, amp=amps[1], type='constant')
     wf = np.concatenate((wf1, wf2))
-
-    ## Create zeros for cleanup
-    wz1 = create_waveform(rate, samples, type='zero')
-    wz2 = create_waveform(rate, samples, type='zero')
-    wz = np.concatenate((wz1, wz2))
+    wz = 0*wf # Zeros for cleanup
 
     ## Display waveforms if needed
     if SHOW: show_waveform(t, wf.T)
