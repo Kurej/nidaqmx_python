@@ -12,7 +12,7 @@ import random
 import matplotlib.pyplot as plt
 
 import nidaqmx
-from nidaqmx.stream_writers import AnalogMultiChannelWriter
+from nidaqmx.stream_writers import AnalogMultiChannelWriter, DigitalSingleChannelWriter
 from nidaqmx.stream_readers import AnalogMultiChannelReader, CounterReader
 
 
@@ -23,6 +23,7 @@ samples = 1000
 
 # Store channel names in dictionary
 chans = {
+    "do": "Dev1/PFI1",
     "co": "Dev1/Ctr3",
     "ao": "Dev1/ao0,Dev1/ao1,Dev1/ao2,Dev1/ao3",
     "aom": "Dev3/ao0",
@@ -33,7 +34,7 @@ chans = {
 
 
 # Create and setup co task
-cotask = nidaqmx.Task()
+cotask = nidaqmx.Task("Counter")
 co_chan_names = nidaqmx.utils.unflatten_channel_string(chans["co"])
 for chan in co_chan_names:
     cotask.co_channels.add_co_pulse_chan_freq(chan, freq=rate)
@@ -46,10 +47,16 @@ for chan in co_chan_names:
 cotask.timing.cfg_implicit_timing()
 
 
+# Create and setup shutter task
+dotask = nidaqmx.Task("Shutter")
+do_chan_names = nidaqmx.utils.unflatten_channel_string(chans["do"])
+for chan in do_chan_names:
+    dotask.do_channels.add_do_chan(chan, "", nidaqmx.constants.LineGrouping.CHAN_PER_LINE)
+# dotask.timing.cfg_implicit_timing()
 
 
 # Create and setup ao task
-aotask = nidaqmx.Task()
+aotask = nidaqmx.Task("AOs")
 ao_chan_names = nidaqmx.utils.unflatten_channel_string(chans["ao"])
 for chan in ao_chan_names:
     aotask.ao_channels.add_ao_voltage_chan(chan)
@@ -64,7 +71,7 @@ aotask.timing.cfg_samp_clk_timing(
 
 
 # Create and setup aom task
-aomtask = nidaqmx.Task()
+aomtask = nidaqmx.Task("AOM")
 aom_chan_names = nidaqmx.utils.unflatten_channel_string(chans["aom"])
 for chan in aom_chan_names:
     aomtask.ao_channels.add_ao_voltage_chan(chan)
@@ -81,7 +88,7 @@ aomtask.triggers.start_trigger.cfg_dig_edge_start_trig(
 
 
 # Create and setup ai task
-aitask = nidaqmx.Task()
+aitask = nidaqmx.Task("AIs")
 ai_chan_names = nidaqmx.utils.unflatten_channel_string(chans["ai"])
 for chan in ai_chan_names:
     aitask.ai_channels.add_ai_voltage_chan(chan)
@@ -117,19 +124,26 @@ ai_vals = np.zeros((len(ai_chan_names), samples), dtype=np.float64)
 
 
 # Set writers and readers
+do_writer = DigitalSingleChannelWriter(dotask.out_stream)
 ao_writer = AnalogMultiChannelWriter(aotask.out_stream)
 aom_writer = AnalogMultiChannelWriter(aomtask.out_stream)
 ai_reader = AnalogMultiChannelReader(aitask.in_stream)
 
+# obj.ShutterWriter = DigitalSingleChannelWriter(obj.ShutterTask.Stream);
+# obj.ShutterWriter.WriteSingleSampleSingleLine(true, false);
+# obj.ShutterWriter.WriteSingleSampleSingleLine(true, true);
+
 
 # Start tasks
 aitask.start()
+dotask.start()
 aotask.start()
 aomtask.start()
 cotask.start()
 
 
 # Write/read values
+do_writer.write_one_sample_one_line(True)
 ao_writer.write_many_sample(ao_vals)
 aom_writer.write_many_sample(aom_vals)
 ai_reader.read_many_sample(
@@ -159,12 +173,16 @@ plt.show()
 
 
 # Stop and cleanup
+do_writer.write_one_sample_one_line(False)
+
 aitask.stop()
+dotask.stop()
 aomtask.stop()
 aotask.stop()
 cotask.stop()
 
 aitask.close()
+dotask.close()
 aomtask.close()
 aotask.close()
 cotask.close()
