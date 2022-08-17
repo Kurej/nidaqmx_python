@@ -68,6 +68,11 @@ class App(QtGui.QMainWindow):
         time.sleep(loop_pause_seconds)
 
 
+    def closeEvent(self, *args, **kwargs):
+        super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
+        print("you just closed the pyqt window!!! you are awesome!!!")
+
+
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
